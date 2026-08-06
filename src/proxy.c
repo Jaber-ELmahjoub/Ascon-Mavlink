@@ -108,8 +108,7 @@ int main(int argc, char **argv) {
         default: return 2;
         }
     }
-    if (!role_s || !plain_peer_s || !cipher_peer_s || !identity_s ||
-        !peer_identity_s || !hs_peer_s) {
+    if (!role_s || !identity_s || !peer_identity_s || !hs_peer_s) {
         fprintf(stderr, "missing required option; see comment at top of proxy.c\n");
         return 2;
     }
@@ -149,9 +148,13 @@ int main(int argc, char **argv) {
 
     /* ---------------- data path ------------------------------------------ */
     struct sockaddr_in plain_peer, cipher_peer;
-    if (parse_addr(plain_peer_s, &plain_peer) != 0 ||
-        parse_addr(cipher_peer_s, &cipher_peer) != 0) {
-        fprintf(stderr, "bad address\n"); return 2;
+    memset(&plain_peer, 0, sizeof plain_peer);
+    memset(&cipher_peer, 0, sizeof cipher_peer);
+    if (plain_peer_s && parse_addr(plain_peer_s, &plain_peer) != 0) {
+        fprintf(stderr, "bad --plain-peer\n"); return 2;
+    }
+    if (cipher_peer_s && parse_addr(cipher_peer_s, &cipher_peer) != 0) {
+        fprintf(stderr, "bad --cipher-peer\n"); return 2;
     }
     int sp = udp_socket((uint16_t)plain_listen);
     int sc = udp_socket((uint16_t)cipher_listen);
@@ -160,6 +163,13 @@ int main(int argc, char **argv) {
     am_replay_t replay;
     am_replay_init(&replay);
     uint64_t counter = 0;
+
+    /* MAVProxy and ArduPilot SITL send from an ephemeral source port, so the
+       address to reply to is not known in advance. Both sides are learned from
+       the first datagram received and refreshed thereafter, which also lets an
+       endpoint move or reconnect without restarting the proxy. */
+    int plain_known  = plain_peer.sin_port  != 0;
+    int cipher_known = cipher_peer.sin_port != 0;
 
     signal(SIGINT, on_signal);
     signal(SIGTERM, on_signal);
@@ -174,13 +184,20 @@ int main(int argc, char **argv) {
         /* plaintext -> protected: split the datagram into MAVLink frames and
            protect each one, so several frames per datagram are handled. */
         if (fds[0].revents & POLLIN) {
-            ssize_t n = recv(sp, in, sizeof in, 0);
+            struct sockaddr_in from; socklen_t flen_ = sizeof from;
+            ssize_t n = recvfrom(sp, in, sizeof in, 0,
+                                 (struct sockaddr *)&from, &flen_);
+            if (n > 0 && !plain_known) {
+                plain_peer = from; plain_known = 1;
+                fprintf(stderr, "[%s] plaintext peer learned: %s:%u\n", role_s,
+                        inet_ntoa(from.sin_addr), ntohs(from.sin_port));
+            }
             for (ssize_t off = 0; off < n; ) {
                 size_t flen = am_mav_frame_len(in + off, (size_t)(n - off));
                 if (flen == 0) { stats.unframed++; break; }
                 long w = am_protect_frame(in + off, flen, send_key,
                                           device_id, counter++, out, sizeof out);
-                if (w > 0) {
+                if (w > 0 && cipher_known) {
                     sendto(sc, out, (size_t)w, 0,
                            (struct sockaddr *)&cipher_peer, sizeof cipher_peer);
                     stats.frames_out++;
@@ -195,12 +212,22 @@ int main(int argc, char **argv) {
 
         /* protected -> plaintext: verify, check replay, forward */
         if (fds[1].revents & POLLIN) {
-            ssize_t n = recv(sc, in, sizeof in, 0);
+            struct sockaddr_in from; socklen_t flen_ = sizeof from;
+            ssize_t n = recvfrom(sc, in, sizeof in, 0,
+                                 (struct sockaddr *)&from, &flen_);
             long w = am_unprotect_frame(in, (size_t)n, recv_key, &replay,
                                         out, sizeof out);
             if (w > 0) {
-                sendto(sp, out, (size_t)w, 0,
-                       (struct sockaddr *)&plain_peer, sizeof plain_peer);
+                /* only a frame that passed tag verification may update the
+                   peer address, so a forged datagram cannot redirect traffic */
+                if (!cipher_known) {
+                    cipher_peer = from; cipher_known = 1;
+                    fprintf(stderr, "[%s] protected peer learned: %s:%u\n", role_s,
+                            inet_ntoa(from.sin_addr), ntohs(from.sin_port));
+                }
+                if (plain_known)
+                    sendto(sp, out, (size_t)w, 0,
+                           (struct sockaddr *)&plain_peer, sizeof plain_peer);
                 stats.frames_in++;
                 if (verbose)
                     fprintf(stderr, "[%s] in  %zd -> %ld bytes\n", role_s, n, w);
