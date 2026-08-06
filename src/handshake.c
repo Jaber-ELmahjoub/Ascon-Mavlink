@@ -159,7 +159,11 @@ int am_handshake_run(int sock, am_role_t role,
                             transcript, sizeof transcript);
         /* The responder answers repeatedly for a short while, because its reply
            may be lost while the initiator is still retransmitting. */
-        for (int i = 0; i < 4; i++) { send_all(sock, mine, HS_MSGLEN); usleep(50000); }
+        for (int i = 0; i < 4; i++) {
+    send_all(sock, mine, HS_MSGLEN);
+    struct timespec gap = { 0, 50 * 1000 * 1000 };   /* 50 ms */
+    nanosleep(&gap, NULL);
+}
     }
 
     crypto_x25519(shared, eph_sk, theirs + HS_NONCE);
