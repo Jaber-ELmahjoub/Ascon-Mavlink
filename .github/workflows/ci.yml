@@ -1,0 +1,20 @@
+name: build and self-test
+
+on: [push, pull_request]
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: fetch dependencies
+        run: cd src && make deps
+      - name: build
+        run: cd src && make
+      - name: run the self-test
+        run: cd src && ./ascon-selftest
+      - name: end-to-end loopback test
+        run: |
+          cd src && ./ascon-keygen ground && ./ascon-keygen vehicle
+          cp ../test/loopback_test.py .
+          python3 loopback_test.py

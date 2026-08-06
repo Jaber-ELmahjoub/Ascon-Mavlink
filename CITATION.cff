@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: "Ascon-MAVLink: a transparent Ascon-128 AEAD security proxy for MAVLink v2"
+message: "If you use this software, please cite the accompanying paper."
+type: software
+authors:
+  - family-names: "El Mahjoub"
+    given-names: "Jaber"
+    affiliation: "Engineering Sciences Lab, ENSA, Ibn Tofail University, Kenitra, Morocco"
+  - family-names: "Abdellaoui"
+    given-names: "Abderrahim"
+    affiliation: "Engineering Sciences Lab, ENSA, Ibn Tofail University, Kenitra, Morocco"
+license: MIT
+preferred-citation:
+  type: article
+  title: "Lightweight Authenticated Encryption for MAVLink Protocol: Design, Implementation, and Evaluation of an Ascon-128 Security Layer"
+  authors:
+    - family-names: "El Mahjoub"
+      given-names: "Jaber"
+    - family-names: "Abdellaoui"
+      given-names: "Abderrahim"
+  journal: "IEEE Access"
+  year: 2026

@@ -1,0 +1,29 @@
+# fetched dependencies
+src/ascon-c/
+src/Monocypher/
+benchmarks/*/ascon-c/
+benchmarks/*/mbedtls/
+benchmarks/*/Monocypher/
+
+# build products
+*.o
+*.elf
+*.a
+ascon-proxy
+ascon-keygen
+ascon-selftest
+ascon-bench
+bench_sw
+bench_hw
+armobj/
+o_*/
+
+# key material -- never commit these
+*.key
+*.pub
+
+# captures and generated results
+*.pcap
+*.pcapng
+sizes.txt
+__pycache__/
