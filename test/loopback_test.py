@@ -19,7 +19,15 @@ rejected.
 import socket, subprocess, time, os, sys, struct
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PROXY = os.path.join(HERE, "..", "ascon-proxy")
+def _find_proxy():
+    for candidate in (os.path.join(HERE, "ascon-proxy"),
+                      os.path.join(HERE, "..", "ascon-proxy"),
+                      os.path.join(HERE, "..", "src", "ascon-proxy")):
+        if os.path.isfile(candidate):
+            return os.path.abspath(candidate)
+    sys.exit("ascon-proxy not found; run 'make' in src/ first")
+
+PROXY = _find_proxy()
 
 GCS_PORT, GROUND_IN = 14550, 14555      # script <- ground proxy, script -> ground proxy
 CIPHER_G, CIPHER_V = 14556, 14557       # untrusted segment
