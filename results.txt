@@ -1,9 +1,0 @@
-# proverif ascon_mavlink_handshake.pv | grep RESULT   (ProVerif 2.05, 0.15 s)
-RESULT not attacker_p1(payloadUp[]) is true.
-RESULT not attacker_p1(payloadDown[]) is true.
-RESULT inj-event(GroundAccept(a,b,x,gx,y,gy)) ==> inj-event(VehicleAccept(a,b,x,gx,y,gy)) is true.
-RESULT event(VehicleAccept(a,b,x,gx,y,gy)) ==> event(GroundStart(a,b,x,gx)) is true.
-RESULT inj-event(VehicleAccept(a,b,x,gx,y,gy)) ==> inj-event(GroundStart(a,b,x,gx)) is false.
-RESULT (but event(VehicleAccept(a,b,x,gx,y,gy)) ==> event(GroundStart(a,b,x,gx)) is true.)
-RESULT inj-event(VehicleConfirm(a,b,x,gx,y,gy)) ==> inj-event(GroundAccept(a,b,x,gx,y,gy)) is true.
-RESULT inj-event(GroundConfirm(a,b,x,gx,y,gy)) ==> inj-event(VehicleConfirm(a,b,x,gx,y,gy)) is true.
