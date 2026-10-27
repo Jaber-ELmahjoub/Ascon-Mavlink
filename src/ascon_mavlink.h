@@ -3,9 +3,10 @@
  *
  * Wire format of a protected datagram:
  *
- *   +----------------+---------------------------+--------------+
- *   |  nonce 16 B    |  ciphertext (payload+CRC) |  tag 16 B    |
- *   +----------------+---------------------------+--------------+
+ *   +---------------+--------------+---------------------------+-----------+
+ *   | MAVLink hdr   |  nonce 16 B  |  ciphertext (payload+CRC) |  tag 16 B |
+ *   | 10 B, clear   |              |                           |           |
+ *   +---------------+--------------+---------------------------+-----------+
  *
  *   nonce = device_id (8 B, little endian) || counter (8 B, little endian)
  *
@@ -18,9 +19,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define AM_KEYLEN      16      /* Ascon-128 key                              */
-#define AM_NONCELEN    16      /* Ascon-128 nonce                            */
-#define AM_TAGLEN      16      /* Ascon-128 tag                              */
+#define AM_KEYLEN      16      /* Ascon-AEAD128 key                          */
+#define AM_NONCELEN    16      /* Ascon-AEAD128 nonce                        */
+#define AM_TAGLEN      16      /* Ascon-AEAD128 tag                          */
 #define AM_MAV_HDR     10      /* MAVLink v2 header, authenticated as AD     */
 #define AM_MAV_CRC      2
 #define AM_MAV_SIG     13      /* optional signature block                   */

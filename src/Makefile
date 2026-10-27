@@ -29,7 +29,7 @@ COMMON   := frame.c handshake.c
 all: ascon-proxy ascon-keygen ascon-selftest
 
 deps:
-	@test -d $(ASCON) || git clone --depth 1 https://github.com/ascon/ascon-c.git
+	@test -d $(ASCON) || { git clone https://github.com/ascon/ascon-c.git && git -C $(ASCON) checkout -q 446347f; }
 	@test -d Monocypher || git clone --depth 1 https://github.com/LoupVaillant/Monocypher.git
 	@echo "dependencies ready"
 
