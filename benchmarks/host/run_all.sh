@@ -15,7 +15,7 @@ echo "== 0. dependencies =="
 sudo apt-get install -y build-essential git libssl-dev gcc-arm-none-eabi binutils-arm-none-eabi
 
 echo "== 1. sources =="
-[ -d ascon-c ] || git clone --depth 1 https://github.com/ascon/ascon-c.git
+[ -d ascon-c ] || { git clone https://github.com/ascon/ascon-c.git && git -C ascon-c checkout -q 446347f; }
 [ -d mbedtls ] || git clone --depth 1 -b v3.6.2 https://github.com/Mbed-TLS/mbedtls.git
 
 ASCON64=ascon-c/crypto_aead/asconaead128/opt64
