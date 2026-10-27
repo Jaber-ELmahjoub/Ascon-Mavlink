@@ -16,6 +16,7 @@ ascon-bench
 bench_sw
 bench_hw
 armobj/
+sz_*/
 o_*/
 
 # key material -- never commit these

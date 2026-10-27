@@ -1,19 +1,19 @@
 # Ascon-MAVLink
 
-Transparent Ascon-128 authenticated-encryption proxy for MAVLink v2, with the
+Transparent Ascon-AEAD128 authenticated-encryption proxy for MAVLink v2, with the
 complete measurement harness used to produce the results in the accompanying
 paper.
 
-> **Lightweight Authenticated Encryption for MAVLink Protocol: Design,
-> Implementation, and Evaluation of an Ascon-128 Security Layer**
+> **Lightweight Authenticated Encryption for MAVLink: Design, Implementation,
+> and Evaluation of an Ascon-AEAD128 Security Layer**
 > J. El Mahjoub and A. Abdellaoui, *IEEE Access*, 2026.
 
 MAVLink transmits telemetry and commands in cleartext, its optional signing
 mechanism is disabled by default, and the `SETUP_SIGNING` message that
 provisions the signing key transmits that key in the clear. This repository
 implements a security overlay that requires no change to the autopilot or the
-ground-control station: a pair of UDP proxies wrap every frame in Ascon-128
-AEAD, the algorithm standardised by NIST in SP 800-232 for constrained devices.
+ground-control station: a pair of UDP proxies wrap every frame in Ascon-AEAD128,
+the AEAD algorithm standardised by NIST in SP 800-232 for constrained devices.
 
 ## What is here
 
@@ -22,7 +22,8 @@ AEAD, the algorithm standardised by NIST in SP 800-232 for constrained devices.
 | `src/` | The C implementation: proxy, handshake, per-frame AEAD, key generation |
 | `benchmarks/host/` | AEAD comparison on a host CPU (Table II methodology) |
 | `benchmarks/cortex-m4/` | Bare-metal Cortex-M4 instruction counting (Tables II and III) |
-| `figures/` | Script that regenerates Fig. 8 from measured data |
+| `figures/` | Script that regenerates Fig. 10 from measured data |
+| `formal/` | ProVerif model of the session-key handshake (Section V-F, Table V) |
 | `test/` | End-to-end loopback test over real UDP sockets |
 
 Every number in the paper is reproduced by a script in this repository. No
@@ -113,12 +114,26 @@ Cortex-M4 instruction counts and footprint (Tables II and III):
 
 ```sh
 cd benchmarks/cortex-m4
-./run_m4.sh armv7m_lowsize
+./run_m4.sh armv7m_lowsize   # Ascon with ARMv7-M assembly permutation
+./run_m4.sh opt32_lowsize    # Ascon in portable 32-bit C
+bash size.sh                 # flash footprint of each AEAD core (-Os)
 ```
 
 Runs the three AEAD constructions as bare-metal Cortex-M4 firmware under
 instruction-accurate emulation. The calibration line must read exactly 40, and
 repeated runs must give identical counts — the emulator is deterministic.
+Instruction counts depend only on the compiler, the C library and the source
+versions, not on the host machine. The paper figures were obtained with
+arm-none-eabi-gcc 15.3.1, picolibc 1.8.12, ascon-c commit `446347f` (pinned by
+the scripts), Mbed TLS 3.6.2 and QEMU 11.1; the raw outputs are in
+`results_m4_armv7m_lowsize.txt`, `results_m4_opt32_lowsize.txt` and
+`results_size_m4.txt`.
+
+Formal verification of the handshake (Table V):
+
+```sh
+proverif formal/ascon_mavlink_handshake.pv | grep RESULT
+```
 
 Host AEAD comparison:
 
