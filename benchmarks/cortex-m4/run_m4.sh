@@ -9,14 +9,20 @@
 #
 #   ./run_m4.sh [ascon_variant]
 # e.g.
-#   ./run_m4.sh bi32_armv7m      # fastest Ascon on M4 (default)
-#   ./run_m4.sh opt32_lowsize    # smallest Ascon
+#   ./run_m4.sh armv7m_lowsize   # ARMv7-M assembly permutation (default, paper)
+#   ./run_m4.sh opt32_lowsize    # portable 32-bit C (paper)
+#
+# Paper conditions (Table II): arm-none-eabi-gcc 15.3.1, picolibc 1.8.12,
+# ascon-c commit 446347f, Mbed TLS 3.6.2, QEMU 11.1, -O2.
 set -e
-IMPL=${1:-bi32_armv7m}
+IMPL=${1:-armv7m_lowsize}
+ASCON_COMMIT=446347f
 OPT=${OPT:--O2}
 
-sudo apt-get install -y gcc-arm-none-eabi qemu-system-arm
-[ -d ascon-c ] || git clone --depth 1 https://github.com/ascon/ascon-c.git
+# picolibc-arm-none-eabi provides the C library (Debian/Kali); on distributions
+# that still ship newlib, install libnewlib-arm-none-eabi and use nosys.specs.
+sudo apt-get install -y gcc-arm-none-eabi picolibc-arm-none-eabi qemu-system-arm
+[ -d ascon-c ] || { git clone https://github.com/ascon/ascon-c.git && git -C ascon-c checkout -q "$ASCON_COMMIT"; }
 [ -d mbedtls ] || git clone --depth 1 -b v3.6.2 https://github.com/Mbed-TLS/mbedtls.git
 
 A=ascon-c/crypto_aead/asconaead128/$IMPL
@@ -39,7 +45,7 @@ done
 # build Ascon at -O2 too. Mixing -Os Ascon with -O2 Mbed TLS understates Ascon.
 arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb $OPT -DNDEBUG \
   -DMBEDTLS_CONFIG_FILE='"mbedtls_cfg.h"' \
-  -nostartfiles --specs=nosys.specs -T link.ld \
+  -nostartfiles --specs=picolibc.specs -T link.ld \
   -I. -Imbedtls/include -I$MB -I"$A" -Iascon-c/tests \
   startup.c bench_m4.c $ASCON_SRC $MB_SRC -o "bench_m4_$IMPL.elf" 2>&1 | grep -i " error" || true
 

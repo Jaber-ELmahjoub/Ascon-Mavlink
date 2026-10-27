@@ -1,0 +1,44 @@
+instructions per SysTick tick (calibration) = 40
+
+instructions per frame, Cortex-M4 (ARMv7E-M)
+payload,algorithm,encrypt,encrypt+verify
+--- payload bytes = 12
+Ascon-AEAD128      encrypt = 3903
+Ascon-AEAD128      enc+ver = 7921
+ChaCha20-Poly1305  encrypt = 4170
+ChaCha20-Poly1305  enc+ver = 8441
+AES-128-GCM        encrypt = 4478
+AES-128-GCM        enc+ver = 9056
+--- payload bytes = 22
+Ascon-AEAD128      encrypt = 4838
+Ascon-AEAD128      enc+ver = 9788
+ChaCha20-Poly1305  encrypt = 4341
+ChaCha20-Poly1305  enc+ver = 8786
+AES-128-GCM        encrypt = 6223
+AES-128-GCM        enc+ver = 12546
+--- payload bytes = 33
+Ascon-AEAD128      encrypt = 5776
+Ascon-AEAD128      enc+ver = 11661
+ChaCha20-Poly1305  encrypt = 4438
+ChaCha20-Poly1305  enc+ver = 8980
+AES-128-GCM        encrypt = 7933
+AES-128-GCM        enc+ver = 15967
+--- payload bytes = 64
+Ascon-AEAD128      encrypt = 7666
+Ascon-AEAD128      enc+ver = 15433
+ChaCha20-Poly1305  encrypt = 4446
+ChaCha20-Poly1305  enc+ver = 8994
+AES-128-GCM        encrypt = 9748
+AES-128-GCM        enc+ver = 19599
+--- payload bytes = 128
+Ascon-AEAD128      encrypt = 11466
+Ascon-AEAD128      enc+ver = 23016
+ChaCha20-Poly1305  encrypt = 6337
+ChaCha20-Poly1305  enc+ver = 12776
+AES-128-GCM        encrypt = 16736
+AES-128-GCM        enc+ver = 33575
+
+key installation (instructions, one-off per rekey)
+AES-128-GCM key schedule + GHASH = 2508
+ChaCha20-Poly1305 setkey        = 30
+Ascon-AEAD128: none (key absorbed into permutation)

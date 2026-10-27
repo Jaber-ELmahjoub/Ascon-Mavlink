@@ -1,0 +1,9 @@
+# bash size.sh  (arm-none-eabi-gcc 15.3.1, -mcpu=cortex-m4 -mthumb -Os)
+== Ascon-AEAD128 opt32_lowsize
+   1244       0       0    1244     4dc (TOTALS)
+== Ascon-AEAD128 armv7m_lowsize
+   1152       0       0    1152     480 (TOTALS)
+== ChaCha20-Poly1305
+   2412       0       0    2412     96c (TOTALS)
+== AES-128-GCM
+   5800       0    8748   14548    38d4 (TOTALS)
