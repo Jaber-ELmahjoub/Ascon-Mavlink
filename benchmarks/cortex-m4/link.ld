@@ -13,4 +13,7 @@ SECTIONS
   _end = .;
   PROVIDE(end = .);
   _estack = ORIGIN(RAM) + LENGTH(RAM) - 16;
+  /* required by picolibc (sbrk); the benchmark never allocates */
+  __heap_start = _end;
+  __heap_end = _estack - 0x10000;
 }
